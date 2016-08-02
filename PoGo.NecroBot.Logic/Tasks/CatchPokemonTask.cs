@@ -146,7 +146,10 @@ namespace PoGo.NecroBot.Logic.Tasks
                     }
 
                     if (session.LogicSettings.TransferDuplicatePokemonOnCapture && session.LogicSettings.TransferDuplicatePokemon)
+                    {
+                        await EvolvePokemonTask.Execute(session, cancellationToken);
                         await TransferDuplicatePokemonTask.Execute(session, cancellationToken);
+                    }
                 }
 
                 evt.CatchType = encounter is EncounterResponse

@@ -60,7 +60,11 @@ namespace PoGo.NecroBot.Logic.State
                 await UseIncubatorsTask.Execute(session, cancellationToken);
             }
 
-            if (session.LogicSettings.UseGpxPathing)
+            if(session.LogicSettings.RemoteMode)
+            {
+                await FarmRemoteLocationsTask.Execute(session, cancellationToken);
+            }
+            else if (session.LogicSettings.UseGpxPathing)
             {
                 await FarmPokestopsGpxTask.Execute(session, cancellationToken);
             }

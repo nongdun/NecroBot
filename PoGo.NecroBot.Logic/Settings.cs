@@ -177,6 +177,9 @@ namespace PoGo.NecroBot.Logic
         public bool PrioritizeIvOverCp;
         [DefaultValue(1)]
         public int KeepMinDuplicatePokemon;
+        //RemoteCatch
+        [DefaultValue(false)]
+        public bool RemoteMode;
         //gpx
         [DefaultValue(false)]
         public bool UseGpxPathing;
@@ -215,9 +218,11 @@ namespace PoGo.NecroBot.Logic
         public string SnipeLocationServer;
         [DefaultValue(16969)]
         public int SnipeLocationServerPort;
-        [DefaultValue(20)]
+        [DefaultValue(100)]
+        public int MaxPokeballsToSnipe;
+        [DefaultValue(50)]
         public int MinPokeballsToSnipe;
-        [DefaultValue(0)]
+        [DefaultValue(20)]
         public int MinPokeballsWhileSnipe;
         [DefaultValue(60000)]
         public int MinDelayBetweenSnipes;
@@ -747,6 +752,7 @@ namespace PoGo.NecroBot.Logic
         public int MaxTravelDistanceInMeters => _settings.MaxTravelDistanceInMeters;
         public string GpxFile => _settings.GpxFile;
         public bool UseGpxPathing => _settings.UseGpxPathing;
+        public bool RemoteMode => _settings.RemoteMode;
         public bool UseLuckyEggsWhileEvolving => _settings.UseLuckyEggsWhileEvolving;
         public int UseLuckyEggsMinPokemonAmount => _settings.UseLuckyEggsMinPokemonAmount;
         public bool EvolveAllPokemonAboveIv => _settings.EvolveAllPokemonAboveIv;
@@ -771,6 +777,7 @@ namespace PoGo.NecroBot.Logic
         public Dictionary<PokemonId, TransferFilter> PokemonsTransferFilter => _settings.PokemonsTransferFilter;
         public bool StartupWelcomeDelay => _settings.StartupWelcomeDelay;
         public bool SnipeAtPokestops => _settings.SnipeAtPokestops;
+        public int MaxPokeballsToSnipe => _settings.MaxPokeballsToSnipe;
         public int MinPokeballsToSnipe => _settings.MinPokeballsToSnipe;
         public int MinPokeballsWhileSnipe => _settings.MinPokeballsWhileSnipe;
         public int MaxPokeballsPerPokemon => _settings.MaxPokeballsPerPokemon;

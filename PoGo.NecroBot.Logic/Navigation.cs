@@ -109,6 +109,10 @@ namespace PoGo.NecroBot.Logic
                                 _client.Settings.DefaultAltitude);
                 UpdatePositionEvent?.Invoke(targetLocation.Latitude, targetLocation.Longitude);
 
+                if (functionExecutedWhileWalking != null)
+                    await functionExecutedWhileWalking(); // look for pokemon
+                await Task.Delay(200, cancellationToken);
+
                 return result;
             }
 

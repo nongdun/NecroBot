@@ -125,7 +125,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             if (_lastSnipe.AddMilliseconds(session.LogicSettings.MinDelayBetweenSnipes) > DateTime.Now)
                 return;
 
-            if (await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken))
+            if (await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe, session, cancellationToken))
             {
                 if (session.LogicSettings.PokemonToSnipe != null)
                 {

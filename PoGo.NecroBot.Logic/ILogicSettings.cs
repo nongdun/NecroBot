@@ -104,6 +104,7 @@ namespace PoGo.NecroBot.Logic
         string UseBerriesOperator { get; }
         string UpgradePokemonMinimumStatsOperator { get; }
         int MaxTravelDistanceInMeters { get; }
+        bool RemoteMode { get; }
         bool UseGpxPathing { get; }
         string GpxFile { get; }
         bool UseLuckyEggsWhileEvolving { get; }
@@ -122,6 +123,7 @@ namespace PoGo.NecroBot.Logic
         string ProfileConfigPath { get; }
         string GeneralConfigPath { get; }
         bool SnipeAtPokestops { get; }
+        int MaxPokeballsToSnipe { get; }
         int MinPokeballsToSnipe { get; }
         int MinPokeballsWhileSnipe { get; }
         int MaxPokeballsPerPokemon { get; }

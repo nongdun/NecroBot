@@ -92,6 +92,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\BotService.cs" />
     <Compile Include="Tasks\EggsListTask.cs" />
+    <Compile Include="Tasks\FarmPokestopsGetBallsTask.cs" />
+    <Compile Include="Tasks\FarmRemoteLocationsTask.cs" />
     <Compile Include="Tasks\FavoritePokemonTask.cs" />
     <Compile Include="Tasks\GetPokeDexCount.cs" />
     <Compile Include="Tasks\InventoryListTask.cs" />

@@ -63,7 +63,11 @@ namespace PoGo.NecroBot.Logic.Service
                 UseIncubatorsTask.Execute(_session, cancellationToken).Wait(cancellationToken);
             }
 
-            if (_session.LogicSettings.UseGpxPathing)
+            if(_session.LogicSettings.RemoteMode)
+            {
+                FarmRemoteLocationsTask.Execute(_session, cancellationToken).Wait(cancellationToken);
+            }
+            else if (_session.LogicSettings.UseGpxPathing)
             {
                 FarmPokestopsGpxTask.Execute(_session, cancellationToken).Wait(cancellationToken);
             }

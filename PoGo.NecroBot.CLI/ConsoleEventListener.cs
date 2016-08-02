@@ -41,7 +41,7 @@ namespace PoGo.NecroBot.CLI
             if (!warnEvent.RequireInput) return;
             // Otherwise require input.
             Logger.Write(session.Translation.GetTranslation(TranslationString.RequireInputText));
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         private static void HandleEvent(UseLuckyEggEvent useLuckyEggEvent, ISession session)
@@ -259,7 +259,7 @@ namespace PoGo.NecroBot.CLI
 
         private static void HandleEvent(EvolveCountEvent evolveCountEvent, ISession session )
         {
-            Logger.Write(session.Translation.GetTranslation(TranslationString.PkmPotentialEvolveCount, evolveCountEvent.Evolves), LogLevel.Update, ConsoleColor.White);
+            Logger.Write(session.Translation.GetTranslation(TranslationString.PkmPotentialEvolveCount, evolveCountEvent.Evolves), LogLevel.Update, ConsoleColor.DarkCyan);
         }
 
         private static void HandleEvent(UpdateEvent updateEvent, ISession session)
