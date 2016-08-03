@@ -13,6 +13,7 @@ using POGOProtos.Map.Fort;
 using POGOProtos.Map.Pokemon;
 using POGOProtos.Networking.Responses;
 using System.Threading;
+using PoGo.NecroBot.Logic.Logging;
 
 #endregion
 
@@ -29,11 +30,12 @@ namespace PoGo.NecroBot.Logic.Tasks
             if (encounter == null) return;
 
             float probability = encounter?.CaptureProbability?.CaptureProbability_[0];
-
+            Logger.Write($"10.1 check ball.", LogLevel.Info);
             // Check for pokeballs before proceeding
             var pokeball = await GetBestBall(session, encounter, probability);
             if (pokeball == ItemId.ItemUnknown) return;
 
+            Logger.Write($"10.2 Calculate CP and IV.", LogLevel.Info);
             //Calculate CP and IV
             var pokemonCp = (encounter is EncounterResponse
                                ? encounter.WildPokemon?.PokemonData?.Cp
@@ -42,6 +44,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     ? encounter.WildPokemon?.PokemonData
                     : encounter?.PokemonData);
 
+            Logger.Write($"10.3 Determine whether to use berries or not.", LogLevel.Info);
             // Determine whether to use berries or not
             if ((session.LogicSettings.UseBerriesOperator.ToLower().Equals("and") &&
                     pokemonIv >= session.LogicSettings.UseBerriesMinIv &&
@@ -62,6 +65,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                             : currentFortData?.Id);
             }
 
+            Logger.Write($"10.4 Calculate distance away.", LogLevel.Info);
             // Calculate distance away
             var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                 session.Client.CurrentLongitude,
@@ -76,6 +80,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             var attemptCounter = 1;
             do
             {
+                Logger.Write($"10.5 GetBestBall.", LogLevel.Info);
                 if ((session.LogicSettings.MaxPokeballsPerPokemon > 0 && 
                     attemptCounter > session.LogicSettings.MaxPokeballsPerPokemon))
                     break;
@@ -94,6 +99,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     return;
                 }
 
+                Logger.Write($"10.6 caughtPokemonResponse.", LogLevel.Info);
                 caughtPokemonResponse =
                     await session.Client.Encounter.CatchPokemon(
                         encounter is EncounterResponse || encounter is IncenseEncounterResponse
@@ -117,22 +123,27 @@ namespace PoGo.NecroBot.Logic.Tasks
                 if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                 {
                     var totalExp = 0;
+                    Logger.Write($"10.7 CatchPokemonResponse CatchSuccess. calc exp.", LogLevel.Info);
 
                     foreach (var xp in caughtPokemonResponse.CaptureAward.Xp)
                     {
                         totalExp += xp;
                     }
-                    var profile = await session.Client.Player.GetPlayer();
+                    //Logger.Write($"10.71 get player info.", LogLevel.Info);
+                    //var profile = await session.Client.Player.GetPlayer();
 
                     evt.Exp = totalExp;
-                    evt.Stardust = profile.PlayerData.Currencies.ToArray()[1].Amount;
-
+                    evt.Stardust = 0; //profile.PlayerData.Currencies.ToArray()[1].Amount;
+/*
+                    Logger.Write($"10.72 get settings.", LogLevel.Info);
                     var pokemonSettings = await session.Inventory.GetPokemonSettings();
                     var pokemonFamilies = await session.Inventory.GetPokemonFamilies();
 
                     var setting =
                         pokemonSettings.FirstOrDefault(q => pokemon != null && q.PokemonId == pokemon.PokemonId);
                     var family = pokemonFamilies.FirstOrDefault(q => setting != null && q.FamilyId == setting.FamilyId);
+
+                    Logger.Write($"10.8 FamilyCandies.", LogLevel.Info);
 
                     if (family != null)
                     {
@@ -144,11 +155,17 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         evt.FamilyCandies = caughtPokemonResponse.CaptureAward.Candy.Sum();
                     }
-
+                    */
                     if (session.LogicSettings.TransferDuplicatePokemonOnCapture && session.LogicSettings.TransferDuplicatePokemon)
+                    {
+                        Logger.Write($"10.9 Evolve.", LogLevel.Info);
+                        await EvolvePokemonTask.Execute(session, cancellationToken);
+                        Logger.Write($"10.10 Transfer Duplicate Pokemon.", LogLevel.Info);
                         await TransferDuplicatePokemonTask.Execute(session, cancellationToken);
+                    }
                 }
 
+                Logger.Write($"10.11 get pokemon info.", LogLevel.Info);
                 evt.CatchType = encounter is EncounterResponse
                     ? session.Translation.GetTranslation(TranslationString.CatchTypeNormal)
                     : encounter is DiskEncounterResponse
@@ -176,6 +193,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                 evt.Distance = distance;
                 evt.Pokeball = pokeball;
                 evt.Attempt = attemptCounter;
+
+                Logger.Write($"10.12 RefreshCachedInventory.", LogLevel.Info);
+
                 await session.Inventory.RefreshCachedInventory();
                 evt.BallAmount = await session.Inventory.GetItemAmountByType(pokeball);
 
@@ -183,7 +203,8 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 attemptCounter++;
 
-                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 2000);
+                Logger.Write($"10.13 delay.", LogLevel.Info);
+                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 200);
             } while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
                      caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
         }

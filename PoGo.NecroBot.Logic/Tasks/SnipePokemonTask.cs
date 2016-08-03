@@ -18,6 +18,7 @@ using POGOProtos.Enums;
 using POGOProtos.Inventory.Item;
 using POGOProtos.Map.Pokemon;
 using POGOProtos.Networking.Responses;
+using PoGo.NecroBot.Logic.Logging;
 
 #endregion
 
@@ -185,6 +186,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                             var locationsToSnipe = new List<PokemonLocation>();
                             if (scanResult.pokemons != null)
                             {
+                                t = DateTime.Now.ToUniversalTime() - st;
+                                currentTimestamp = t.TotalMilliseconds;
+
                                 var filteredPokemon = scanResult.pokemons.Where(q => pokemonIds.Contains(q.pokemon_name));
                                 var notVisitedPokemon = filteredPokemon.Where(q => !LocsVisited.Contains(q));
                                 var notExpiredPokemon = notVisitedPokemon.Where(q => q.expires < currentTimestamp);
@@ -199,14 +203,17 @@ namespace PoGo.NecroBot.Logic.Tasks
                             {
                                 foreach (var pokemonLocation in locationsToSnipe)
                                 {
+                                    
+                                    Logger.Write($"Snipe pokemons on location [{pokemonLocation.latitude.ToString()}, {pokemonLocation.longitude.ToString()}]", LogLevel.Info);
                                     if (
                                         !await
                                             CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1,
                                                 session, cancellationToken))
                                         return;
+                                    Logger.Write($"1.Check ball.", LogLevel.Info);
 
                                     LocsVisited.Add(pokemonLocation);
-
+                                    Logger.Write($"2.sign visited.", LogLevel.Info);
                                     await
                                         Snipe(session, pokemonIds, pokemonLocation.latitude, pokemonLocation.longitude,
                                             cancellationToken);
@@ -242,18 +249,21 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             session.EventDispatcher.Send(new SnipeModeEvent {Active = true});
 
+            Logger.Write($"3.try to catch.", LogLevel.Info);
             List<MapPokemon> catchablePokemon;
             try
             {
-                await 
-                    session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
+                Logger.Write($"4.update location.", LogLevel.Info);
 
+                await
+                    session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
                 session.EventDispatcher.Send(new UpdatePositionEvent
                 {
                     Longitude = longitude,
                     Latitude = latitude
                 });
 
+                Logger.Write($"5.get map objects.", LogLevel.Info);
                 var mapObjects = session.Client.Map.GetMapObjects().Result;
                 catchablePokemon =
                     mapObjects.MapCells.SelectMany(q => q.CatchablePokemons)
@@ -263,7 +273,8 @@ namespace PoGo.NecroBot.Logic.Tasks
             }
             finally
             {
-                await 
+                Logger.Write($"6.update location back.", LogLevel.Info);
+                await
                     session.Client.Player.UpdatePlayerLocation(CurrentLatitude, CurrentLongitude, session.Client.CurrentAltitude);
             }
 
@@ -272,14 +283,17 @@ namespace PoGo.NecroBot.Logic.Tasks
                 EncounterResponse encounter;
                 try
                 {
+                    Logger.Write($"7.update location.", LogLevel.Info);
                     await
                         session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
 
+                    Logger.Write($"8.try to encounter.", LogLevel.Info);
                     encounter =
                         session.Client.Encounter.EncounterPokemon(pokemon.EncounterId, pokemon.SpawnPointId).Result;
                 }
                 finally
                 {
+                    Logger.Write($"9.location back.", LogLevel.Info);
                     await
                         session.Client.Player.UpdatePlayerLocation(CurrentLatitude, CurrentLongitude,
                             session.Client.CurrentAltitude);
@@ -287,16 +301,20 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 if (encounter.Status == EncounterResponse.Types.Status.EncounterSuccess)
                 {
+
                     session.EventDispatcher.Send(new UpdatePositionEvent
                     {
                         Latitude = CurrentLatitude,
                         Longitude = CurrentLongitude
                     });
+                    Logger.Write($"10.start catch.", LogLevel.Info);
 
                     await CatchPokemonTask.Execute(session, cancellationToken, encounter, pokemon);
                 }
                 else if (encounter.Status == EncounterResponse.Types.Status.PokemonInventoryFull)
                 {
+                    Logger.Write($"10.9 inventory full.", LogLevel.Info);
+
                     if (session.LogicSettings.EvolveAllPokemonAboveIv ||
                         session.LogicSettings.EvolveAllPokemonWithEnoughCandy)
                     {
@@ -317,6 +335,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 }
                 else
                 {
+                    Logger.Write($"10.2 encounter error.", LogLevel.Info);
                     session.EventDispatcher.Send(new WarnEvent
                     {
                         Message =
@@ -329,9 +348,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                     !Equals(catchablePokemon.ElementAtOrDefault(catchablePokemon.Count - 1),
                         pokemon))
                 {
+                    Logger.Write($"11.delay.", LogLevel.Info);
                     await Task.Delay(session.LogicSettings.DelayBetweenPokemonCatch, cancellationToken);
                 }
             }
+
+            Logger.Write($"12.catch finish.", LogLevel.Info);
 
             session.EventDispatcher.Send(new SnipeModeEvent {Active = false});
             await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
@@ -357,6 +379,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             ScanResult scanResult;
             try
             {
+                Logger.Write($"request uri: {uri.ToString()}", LogLevel.Info);
                 var request = WebRequest.CreateHttp(uri);
                 request.Accept = "application/json";
                 request.UserAgent =

@@ -53,7 +53,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     PokemonList = pokemonPairedWithStatsCp
                 });
 
-            await Task.Delay(500);
+            await Task.Delay(200);
 
             session.EventDispatcher.Send(
                 new DisplayHighestsPokemonEvent
@@ -84,7 +84,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     session.EventDispatcher.Send(new ErrorEvent { Message = $"Could not write {dumpFileName} dump file." });
                 }
             }
-            await Task.Delay(500);
+            await Task.Delay(200);
         }
     }
 }
