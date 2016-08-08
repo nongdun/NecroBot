@@ -185,28 +185,28 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         totalExp += xp;
                     }
-                    var profile = await session.Client.Player.GetPlayer();
+                    //var profile = await session.Client.Player.GetPlayer();
 
                     evt.Exp = totalExp;
-                    evt.Stardust = profile.PlayerData.Currencies.ToArray()[1].Amount;
+                    //evt.Stardust = profile.PlayerData.Currencies.ToArray()[1].Amount;
 
-                    var pokemonSettings = await session.Inventory.GetPokemonSettings();
-                    var pokemonFamilies = await session.Inventory.GetPokemonFamilies();
+                    //var pokemonSettings = await session.Inventory.GetPokemonSettings();
+                    //var pokemonFamilies = await session.Inventory.GetPokemonFamilies();
 
-                    var setting =
-                        pokemonSettings.FirstOrDefault(q => pokemon != null && q.PokemonId == pokemon.PokemonId);
-                    var family = pokemonFamilies.FirstOrDefault(q => setting != null && q.FamilyId == setting.FamilyId);
+                    //var setting =
+                    //    pokemonSettings.FirstOrDefault(q => pokemon != null && q.PokemonId == pokemon.PokemonId);
+                    //var family = pokemonFamilies.FirstOrDefault(q => setting != null && q.FamilyId == setting.FamilyId);
 
-                    if (family != null)
-                    {
-                        family.Candy_ += caughtPokemonResponse.CaptureAward.Candy.Sum();
+                    //if (family != null)
+                    //{
+                    //    family.Candy_ += caughtPokemonResponse.CaptureAward.Candy.Sum();
 
-                        evt.FamilyCandies = family.Candy_;
-                    }
-                    else
-                    {
-                        evt.FamilyCandies = caughtPokemonResponse.CaptureAward.Candy.Sum();
-                    }
+                    //    evt.FamilyCandies = family.Candy_;
+                    //}
+                    //else
+                    //{
+                    //    evt.FamilyCandies = caughtPokemonResponse.CaptureAward.Candy.Sum();
+                    //}
 
                     if (session.LogicSettings.TransferDuplicatePokemonOnCapture && session.LogicSettings.TransferDuplicatePokemon)
                         await TransferDuplicatePokemonTask.Execute(session, cancellationToken);
@@ -246,7 +246,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 attemptCounter++;
 
-                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 2000);
+                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 1000);
             } while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
                      caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
         }
