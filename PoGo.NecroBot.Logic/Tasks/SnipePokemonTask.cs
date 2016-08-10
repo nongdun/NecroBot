@@ -241,6 +241,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                             if (locationsToSnipe.Any())
                             {
+                                int pokemonCount = 0;
                                 foreach (var pokemonLocation in locationsToSnipe)
                                 {
                                     if (
@@ -254,6 +255,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                                     await
                                         Snipe(session, pokemonIds, pokemonLocation.latitude, pokemonLocation.longitude,
                                             cancellationToken);
+                                    if(pokemonCount++ > 5) { break; }
                                 }
                             }
                             else if (!string.IsNullOrEmpty(scanResult.Status) && scanResult.Status.Contains("fail"))
