@@ -214,7 +214,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                             }
                         }
                     }
-                    else
+                    
                     {
 
 

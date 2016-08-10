@@ -155,6 +155,11 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 await eggWalker.ApplyDistance(distance, cancellationToken);
 
+                if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                {
+                    await SnipePokemonTask.Execute(session, cancellationToken);
+                }
+
                 if (++stopsHit >= storeRI) //TODO: OR item/pokemon bag is full //check stopsHit against storeRI random without dividing.
                 {
                     storeRI = rc.Next(2, 8); //set new storeRI for new random value
@@ -204,10 +209,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                     }
                 }
 
-                if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
-                {
-                    await SnipePokemonTask.Execute(session, cancellationToken);
-                }
             }
         }
 
