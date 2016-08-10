@@ -125,6 +125,7 @@ namespace PoGo.NecroBot.Logic.Tasks
         public static List<PokemonLocation> LocsVisited = new List<PokemonLocation>();
         private static readonly List<SniperInfo> SnipeLocations = new List<SniperInfo>();
         private static DateTime _lastSnipe = DateTime.MinValue;
+        private static int SnipeLocationIndex = 0;
 
         public static Task AsyncStart(Session session, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -207,9 +208,15 @@ namespace PoGo.NecroBot.Logic.Tasks
                             }
                         }
 
-                        foreach (var location in session.LogicSettings.PokemonToSnipe.Locations)
+                        //foreach (var location in session.LogicSettings.PokemonToSnipe.Locations)
                         {
-                            await SnipPokemonFromFeeder(session, pokemonIds, cancellationToken);
+                            var location = session.LogicSettings.PokemonToSnipe.Locations[SnipeLocationIndex];
+                            if (++SnipeLocationIndex >= session.LogicSettings.PokemonToSnipe.Locations.Count)
+                            {
+                                SnipeLocationIndex = 0;
+                            }
+
+                            //await SnipPokemonFromFeeder(session, pokemonIds, cancellationToken);
 
                             session.EventDispatcher.Send(new SnipeScanEvent
                             {
