@@ -22,6 +22,7 @@ using POGOProtos.Inventory.Item;
 using POGOProtos.Map.Pokemon;
 using POGOProtos.Networking.Responses;
 using Quobject.SocketIoClientDotNet.Client;
+using PoGo.NecroBot.Logic.Logging;
 
 #endregion
 
@@ -874,6 +875,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                             if (line == null)
                                 throw new Exception("Unable to ReadLine from sniper socket");
 
+                            //Logger.Write(line, LogLevel.Info);
                             var info = JsonConvert.DeserializeObject<SniperInfo>(line);
 
                             if (SnipeLocations.Any(x =>

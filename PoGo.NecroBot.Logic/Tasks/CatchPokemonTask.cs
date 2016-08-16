@@ -57,6 +57,23 @@ namespace PoGo.NecroBot.Logic.Tasks
                 }
             }
 
+            if (session.LogicSettings.UploadPokemonLocationToServer)
+            {
+                //upload to mysql server
+                SniperInfo pokemonInfo = new SniperInfo();
+                pokemonInfo.EncounterId = pokemon.EncounterId;
+                pokemonInfo.Latitude = pokemon.Latitude;
+                pokemonInfo.Longitude = pokemon.Longitude;
+                pokemonInfo.Id = pokemon.PokemonId;
+                pokemonInfo.SpawnPointId = pokemon.SpawnPointId;
+                pokemonInfo.IV = pokemonIv;
+                long unixDate = pokemon.ExpirationTimestampMs;
+                DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                pokemonInfo.ExpirationTimestamp = start.AddMilliseconds(unixDate).ToLocalTime();
+
+                await UploadPokemonLocationsTask.Execute(session, pokemonInfo, cancellationToken);
+            }
+
             // Calculate distance away
             var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                 session.Client.CurrentLongitude,
