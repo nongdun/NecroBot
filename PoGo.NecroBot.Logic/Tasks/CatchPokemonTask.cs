@@ -48,6 +48,15 @@ namespace PoGo.NecroBot.Logic.Tasks
                     ? encounter.WildPokemon?.PokemonData
                     : encounter?.PokemonData);
 
+            if (session.LogicSettings.OnlyCatchHighIvPokemon)
+            {
+                if(pokemonIv < session.LogicSettings.MinIvPercentageToCatch)
+                {
+                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% NOT to catch.", LogLevel.Info);
+                    return;
+                }
+            }
+
             // Calculate distance away
             var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                 session.Client.CurrentLongitude,

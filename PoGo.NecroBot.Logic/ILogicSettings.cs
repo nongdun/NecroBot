@@ -128,6 +128,8 @@ namespace PoGo.NecroBot.Logic
         bool UsePokemonSniperFilterOnly { get; }
         int KeepMinDuplicatePokemon { get; }
         bool PrioritizeIvOverCp { get; }
+        bool OnlyCatchHighIvPokemon { get; }
+        double MinIvPercentageToCatch { get; }
         int AmountOfTimesToUpgradeLoop { get; }
         int GetMinStarDustForLevelUp { get; }
         bool UseLuckyEggConstantly { get; }
