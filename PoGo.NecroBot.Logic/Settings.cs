@@ -398,6 +398,9 @@ namespace PoGo.NecroBot.Logic
         public bool PrioritizeIvOverCp;
         public int KeepMinDuplicatePokemon = 1;
         /*NotCatch*/
+        public bool OnlyCatchHighIvPokemon = false;
+        public double MinIvPercentageToCatch = 70;
+        public bool UploadPokemonLocationToServer = false;
         public bool UsePokemonToNotCatchFilter;
         public bool UsePokemonSniperFilterOnly;
         /*Dump Stats*/
@@ -1327,6 +1330,9 @@ namespace PoGo.NecroBot.Logic
         public bool UsePokemonSniperFilterOnly => _settings.PokemonSettings.UsePokemonSniperFilterOnly;
         public int KeepMinDuplicatePokemon => _settings.PokemonSettings.KeepMinDuplicatePokemon;
         public bool PrioritizeIvOverCp => _settings.PokemonSettings.PrioritizeIvOverCp;
+        public bool OnlyCatchHighIvPokemon => _settings.PokemonSettings.OnlyCatchHighIvPokemon;
+        public double MinIvPercentageToCatch => _settings.PokemonSettings.MinIvPercentageToCatch;
+        public bool UploadPokemonLocationToServer => _settings.PokemonSettings.UploadPokemonLocationToServer;
         public int MaxTravelDistanceInMeters => _settings.LocationSettings.MaxTravelDistanceInMeters;
         public string GpxFile => _settings.GPXSettings.GpxFile;
         public bool UseGpxPathing => _settings.GPXSettings.UseGpxPathing;
