@@ -366,7 +366,7 @@
     },
     {
       "Key": "encounterProblemLurePokemon",
-      "Value": "กำลังเจอปัญหา : ตัวล่อที่ PokeStops {0}"
+      "Value": "กำลังเจอปัญหา : ตัวล่อที่ Poke Stops {0}"
     },
     {
       "Key": "desiredDestTooFar",
@@ -670,15 +670,15 @@
     },
     {
       "Key": "Proxied",
-      "Value": "Your IP is: {0} | Proxy IP is: {1}"
+      "Value": "IP คุณคือ : {0} | Proxy IP is: {1}"
     },
     {
       "Key": "FixProxySettings",
-      "Value": "Press any key to exit so you can fix your proxy settings..."
+      "Value": "กรุณากดคีย์อะไรก็ได้เพื่อออก หรือ คุณสามารถตั้งค่า proxy ใหม่..."
     },
     {
       "Key": "Unproxied",
-      "Value": " Your IP is: {0}"
+      "Value": " IP ของท่านคือ : {0}"
     },
     {
       "Key": "HighestsPokemoHeader",
@@ -690,11 +690,91 @@
     },
     {
       "Key": "HumanWalkingVariant",
-      "Value": "Walking Speed: Has been changed, {0:n2} Km/h to {1:n2} Km/h"
+      "Value": "ความเร็วการเดิน : ถูกปรับจาก, {0:n2} Km/h ไปเป็น {1:n2} Km/h"
     },
     {
       "Key": "AccountBanned",
-      "Value": "Probably Permanent Ban!"
+      "Value": "ขออภัยบัญชีของทานถูกแบน!"
+    },
+    {
+      "Key": "CatchErrorExceeded",
+      "Value": "KillSwitch: Catch error exceeded {0}/{1}"
+    },
+    {
+      "Key": "CatchErrorReset",
+      "Value": "KillSwitch: Catch error restarted {0}/{1}"
+    },
+    {
+      "Key": "CatchErrorState",
+      "Value": "KillSwitch: Catch error state {0}/{1}"
+    },
+    {
+      "Key": "CatchEscapeExceeded",
+      "Value": "KillSwitch: Catch escape exceeded {0}/{1}"
+    },
+    {
+      "Key": "CatchEscapeReset",
+      "Value": "KillSwitch: Catch escape restarted {0}/{1}"
+    },
+    {
+      "Key": "CatchEscapeState",
+      "Value": "KillSwitch: Catch escape state {0}/{1}"
+    },
+    {
+      "Key": "CatchFleeExceeded",
+      "Value": "KillSwitch: Catch flee exceeded {0}/{1}"
+    },
+    {
+      "Key": "CatchFleeReset",
+      "Value": "KillSwitch: Catch flee restarted {0}/{1}"
+    },
+    {
+      "Key": "CatchFleeState",
+      "Value": "KillSwitch: Catch flee state {0}/{1}"
+    },
+    {
+      "Key": "CatchMissedExceeded",
+      "Value": "KillSwitch: Catch missed exceeded {0}/{1}"
+    },
+    {
+      "Key": "CatchMissedReset",
+      "Value": "KillSwitch: Catch missed restarted {0}/{1}"
+    },
+    {
+      "Key": "CatchMissedState",
+      "Value": "KillSwitch: Catch missed state {0}/{1}"
+    },
+    {
+      "Key": "CatchSuccessExceeded",
+      "Value": "KillSwitch: Catch success exceeded {0}/{1}"
+    },
+    {
+      "Key": "CatchSuccessReset",
+      "Value": "KillSwitch: Catch success restarted {0}/{1}"
+    },
+    {
+      "Key": "CatchSuccessState",
+      "Value": "KillSwitch: Catch success state {0}/{1}"
+    },
+    {
+      "Key": "CatchErrorStart",
+      "Value": "KillSwitch: Catch error started {0}/{1}"
+    },
+    {
+      "Key": "CatchEscapeStart",
+      "Value": "KillSwitch: Catch escape started {0}/{1}"
+    },
+    {
+      "key": "CatchFleeStart",
+      "Value": "KillSwitch: Catch flee started {0}/{1}"
+    },
+    {
+      "Key": "CatchMissedStart",
+      "Value": "KillSwitch: Catch missed started {0}/{1}"
+    },
+    {
+      "Key": "CatchSuccessStart",
+      "Value": "KillSwitch: Catch success started {0}/{1}"
     }
   ],
   "PokemonStrings": [
