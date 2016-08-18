@@ -17,7 +17,7 @@ namespace PoGo.NecroBot.Logic.Utils
         /// <summary>  
         /// string server, string database, string login, string pass, int port  
         /// </summary> 
-        public static string connectionString = "server=odincnro.mysql.rds.aliyuncs.com;uid=sniper;pwd=Sniper123;database=sniper;";
+        public static string connectionString = "server=127.0.0.1;uid=;pwd=;database=;";
 
         #region ExecuteNonQuery  
         //执行SQL语句，返回影响的记录数  
