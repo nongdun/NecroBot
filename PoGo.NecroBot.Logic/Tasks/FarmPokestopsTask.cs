@@ -94,7 +94,8 @@ namespace PoGo.NecroBot.Logic.Tasks
                 var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                     session.Client.CurrentLongitude, pokeStop.Latitude, pokeStop.Longitude);
                 var fortInfo = await session.Client.Fort.GetFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
-                
+
+                var lastSnipeTime = DateTime.Now;
                 cancellationToken.ThrowIfCancellationRequested();
                 session.EventDispatcher.Send(new FortTargetEvent {Name = fortInfo.Name, Distance = distance});
 
@@ -106,6 +107,14 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
                         //Catch Incense Pokemon
                         await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+
+                        if(lastSnipeTime.AddMilliseconds(session.LogicSettings.MinDelayBetweenSnipes)<DateTime.Now)
+                        { 
+                            if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                                await SnipePokemonTask.Execute(session, cancellationToken);
+                            lastSnipeTime = DateTime.Now;
+                        }
+
                         return true;
                     },
                     session,

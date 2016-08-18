@@ -906,11 +906,11 @@ namespace PoGo.NecroBot.Logic.Tasks
                         pokemon.Id = (PokemonId)dr["PokemonId"];
                         pokemon.Latitude = Convert.ToDouble(dr["Latitude"], CultureInfo.InvariantCulture);
                         pokemon.Longitude = Convert.ToDouble(dr["Longitude"], CultureInfo.InvariantCulture);
-                        pokemon.EncounterId = (ulong)dr["EncounterId"];
+                        pokemon.EncounterId = Convert.ToUInt64(dr["EncounterId"]);
                         pokemon.SpawnPointId = dr["SpawnPointId"].ToString();
                         pokemon.IV = (double)dr["iv"];
-                        pokemon.Move1 = (PokemonMove)dr["Move1"];
-                        pokemon.Move2 = (PokemonMove)dr["Move2"];
+                        //pokemon.Move1 = (PokemonMove)dr["Move1"];
+                        //pokemon.Move2 = (PokemonMove)dr["Move2"];
                         pokemon.ExpirationTimestamp = (DateTime)dr["ExpirationTimestamp"];
                         SnipeLocations.Add(pokemon);
                     }
