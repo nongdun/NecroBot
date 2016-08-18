@@ -132,6 +132,7 @@ namespace PoGo.NecroBot.Logic
         bool OnlyCatchHighIvPokemon { get; }
         double MinIvPercentageToCatch { get; }
         bool UploadPokemonLocationToServer { get; }
+        bool DetectMode { get; }
         int AmountOfTimesToUpgradeLoop { get; }
         int GetMinStarDustForLevelUp { get; }
         bool UseLuckyEggConstantly { get; }

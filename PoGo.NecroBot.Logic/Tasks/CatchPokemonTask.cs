@@ -72,6 +72,11 @@ namespace PoGo.NecroBot.Logic.Tasks
                 pokemonInfo.ExpirationTimestamp = start.AddMilliseconds(unixDate).ToLocalTime();
 
                 await UploadPokemonLocationsTask.Execute(session, pokemonInfo, cancellationToken);
+
+                if (session.LogicSettings.DetectMode)
+                {
+                    return;
+                }
             }
 
             // Calculate distance away

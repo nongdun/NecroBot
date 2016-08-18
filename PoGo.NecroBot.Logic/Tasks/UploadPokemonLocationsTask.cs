@@ -23,7 +23,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                          pokemonInfo.IV.ToString("0.00") + ", \"" +
                          pokemonInfo.ExpirationTimestamp.ToString("yyyy-MM-dd HH:mm:ss") + "\", 1)";
 
-            Logger.Write(sql, LogLevel.Info);
+            //Logger.Write(sql, LogLevel.Info);
             int result = 0;
             try
             {
