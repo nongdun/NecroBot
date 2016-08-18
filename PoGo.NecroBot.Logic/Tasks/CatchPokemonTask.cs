@@ -73,7 +73,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 await UploadPokemonLocationsTask.Execute(session, pokemonInfo, cancellationToken);
 
-                if (session.LogicSettings.DetectMode)
+                if (session.LogicSettings.DetectMode && pokemonIv < 99)
                 {
                     return;
                 }

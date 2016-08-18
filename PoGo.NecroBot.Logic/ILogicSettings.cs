@@ -175,6 +175,7 @@ namespace PoGo.NecroBot.Logic
         bool GetSniperInfoFromPokeSnipers { get; }
         bool GetSniperInfoFromPokeWatchers { get; }
         bool GetSniperInfoFromSkiplagged { get; }
+        bool GetSniperInfoFromMysql { get; }
         bool UseSnipeLocationServer { get; }
         bool UseTransferIvForSnipe { get; }
         bool SnipeIgnoreUnknownIv { get; }
