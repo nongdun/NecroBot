@@ -29,8 +29,8 @@ namespace PoGo.NecroBot.Logic.Tasks
         public static async Task Execute(ISession session, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
-            var distanceFromStart = LocationUtils.RequestDistanceInMeters(
+
+            var distanceFromStart = LocationUtils.CalculateDistanceInMeters(
                 session.Settings.DefaultLatitude, session.Settings.DefaultLongitude,
                 session.Client.CurrentLatitude, session.Client.CurrentLongitude);
 
@@ -53,12 +53,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                     cancellationToken);
             }
 
-            session.EventDispatcher.Send(new SpinProgressBarEvent
-            {
-                Message = session.Translation.GetTranslation(TranslationString.RequestHumanDistance),
-                IsWorking = true
-            });
-
             var pokestopList = await GetPokeStops(session);
             var stopsHit = 0;
             var RandomStop = 0;
@@ -77,26 +71,17 @@ namespace PoGo.NecroBot.Logic.Tasks
             }
 
             session.EventDispatcher.Send(new PokeStopListEvent {Forts = pokestopList});
-            session.EventDispatcher.Send(new SpinProgressBarEvent { IsWorking = false });
 
             while (pokestopList.Any())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                session.EventDispatcher.Send(new SpinProgressBarEvent
-                {
-                    Message = session.Translation.GetTranslation(TranslationString.CalculatingNextPokestop),
-                    IsWorking = true
-                });
-
                 //resort
                 pokestopList =
                     pokestopList.OrderBy(
                         i =>
-                            LocationUtils.RequestDistanceInMeters(session.Client.CurrentLatitude,
+                            LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                                 session.Client.CurrentLongitude, i.Latitude, i.Longitude)).ToList();
-
-                session.EventDispatcher.Send(new SpinProgressBarEvent { IsWorking = false });
 
                 // randomize next pokestop between first and second by distance
                 var pokestopListNum = 0;
@@ -106,7 +91,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 var pokeStop = pokestopList[pokestopListNum];
                 pokestopList.RemoveAt(pokestopListNum);
 
-                var distance = LocationUtils.RequestDistanceInMeters(session.Client.CurrentLatitude,
+                var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                     session.Client.CurrentLongitude, pokeStop.Latitude, pokeStop.Longitude);
                 var fortInfo = await session.Client.Fort.GetFort(pokeStop.Id, pokeStop.Latitude, pokeStop.Longitude);
                 
@@ -271,12 +256,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                         i.Type == FortType.Checkpoint &&
                         i.CooldownCompleteTimestampMs < DateTime.UtcNow.ToUnixTime() &&
                         ( // Make sure PokeStop is within max travel distance, unless it's set to 0.
-                            LocationUtils.RequestDistanceInMeters(
+                            LocationUtils.CalculateDistanceInMeters(
                                 session.Settings.DefaultLatitude, session.Settings.DefaultLongitude,
                                 i.Latitude, i.Longitude) < session.LogicSettings.MaxTravelDistanceInMeters ||
                         session.LogicSettings.MaxTravelDistanceInMeters == 0) 
                 );
-            
+
             return pokeStops.ToList();
         }
     }
