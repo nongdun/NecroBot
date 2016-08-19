@@ -216,6 +216,32 @@ namespace PoGo.NecroBot.Logic.Tasks
                         pokemonIds = session.LogicSettings.PokemonToSnipe.Pokemon;
                     }
 
+                    if (session.LogicSettings.GetSniperInfoFromMysql)
+                    {
+                        var _locationsToSnipe = GetSniperInfoFrom_Mysql(session, pokemonIds);
+                        if (_locationsToSnipe != null && _locationsToSnipe.Any())
+                        {
+                            foreach (var location in _locationsToSnipe)
+                            {
+                                if (!LocsVisited.Contains(new PokemonLocation(location.Latitude, location.Longitude)))
+                                {
+                                    session.EventDispatcher.Send(new SnipeScanEvent
+                                    {
+                                        Bounds = new Location(location.Latitude, location.Longitude),
+                                        PokemonId = location.Id,
+                                        Source = "MySql",
+                                        Iv = location.IV
+                                    });
+
+                                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
+                                        return;
+
+                                    await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
+                                }
+                            }
+                        }
+                    }
+
                     if (session.LogicSettings.UseSnipeLocationServer)
                     {
                         var locationsToSnipe = SnipeLocations?.Where(q =>
@@ -242,32 +268,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                                         Bounds = new Location(location.Latitude, location.Longitude),
                                         PokemonId = location.Id,
                                         Source = session.LogicSettings.SnipeLocationServer,
-                                        Iv = location.IV
-                                    });
-
-                                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
-                                        return;
-
-                                    await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
-                                }
-                            }
-                        }
-                    }
-
-                    if (session.LogicSettings.GetSniperInfoFromMysql)
-                    {
-                        var _locationsToSnipe = GetSniperInfoFrom_Mysql(session, pokemonIds);
-                        if (_locationsToSnipe != null && _locationsToSnipe.Any())
-                        {
-                            foreach (var location in _locationsToSnipe)
-                            {
-                                if (!LocsVisited.Contains(new PokemonLocation(location.Latitude, location.Longitude)))
-                                {
-                                    session.EventDispatcher.Send(new SnipeScanEvent
-                                    {
-                                        Bounds = new Location(location.Latitude, location.Longitude),
-                                        PokemonId = location.Id,
-                                        Source = "MySql",
                                         Iv = location.IV
                                     });
 
@@ -850,12 +850,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                                 {
                                     locationsToSnipe.Add(q);
                                     status = "Snipe! Let's Go!";
-
-                                    var message = "Pokewatcher:  Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
-                                                  (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
-                                                   " Status: " + status;
-                                    Logger.Write(message, LogLevel.Info);
-                                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
                                 }
                                 else
                                 {
@@ -876,6 +870,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         status = "IV too low  or user choosed ignore unknown IV pokemon";
                     }
+                    var message = "Pokewatcher:  Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
+                        (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
+                        " Status: " + status;
+
+                    Logger.Write(message, LogLevel.Info);
+                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
 
                 }
                 return locationsToSnipe.OrderBy(q => q.ExpirationTimestamp).ToList();
@@ -901,7 +901,8 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             if(pokemonList.Rows.Count > 0)
             {
-                foreach(DataRow dr in pokemonList.Rows)
+                var mysqlLocationsToSnipe = new List<SniperInfo>();
+                foreach (DataRow dr in pokemonList.Rows)
                 {
                     try
                     { 
@@ -915,7 +916,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         //pokemon.Move1 = (PokemonMove)dr["Move1"];
                         //pokemon.Move2 = (PokemonMove)dr["Move2"];
                         pokemon.ExpirationTimestamp = (DateTime)dr["ExpirationTimestamp"];
-                        SnipeLocations.Add(pokemon);
+                        mysqlLocationsToSnipe.Add(pokemon);
                     }
                     catch (Exception e)
                     {
@@ -925,7 +926,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 var locationsToSnipe = new List<SniperInfo>();
                 var status = "";
-                foreach (var q in SnipeLocations)
+                foreach (var q in mysqlLocationsToSnipe)
                 {
                     if (!session.LogicSettings.UseTransferIvForSnipe || (q.IV == 0 && !session.LogicSettings.SnipeIgnoreUnknownIv) || (q.IV >= session.Inventory.GetPokemonTransferFilter(q.Id).KeepMinIvPercentage))
                     {
