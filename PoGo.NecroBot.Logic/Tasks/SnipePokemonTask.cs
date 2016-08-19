@@ -246,6 +246,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         var locationsToSnipe = SnipeLocations?.Where(q =>
                              (!session.LogicSettings.UseTransferIvForSnipe ||
+                               q.IV > 98 ||
                               (q.IV == 0 && !session.LogicSettings.SnipeIgnoreUnknownIv) ||
                               (q.IV >= session.Inventory.GetPokemonTransferFilter(q.Id).KeepMinIvPercentage)) &&
                              !LocsVisited.Contains(new PokemonLocation(q.Latitude, q.Longitude))
@@ -937,6 +938,8 @@ namespace PoGo.NecroBot.Logic.Tasks
                 var status = "";
                 foreach (var q in mysqlLocationsToSnipe)
                 {
+                    if (q.IV > 98) { locationsToSnipe.Add(q);  continue; }
+
                     if (!session.LogicSettings.UseTransferIvForSnipe || (q.IV == 0 && !session.LogicSettings.SnipeIgnoreUnknownIv) || (q.IV >= session.Inventory.GetPokemonTransferFilter(q.Id).KeepMinIvPercentage))
                     {
                         if (!LocsVisited.Contains(new PokemonLocation(q.Latitude, q.Longitude)))
@@ -947,6 +950,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                                 {
                                     locationsToSnipe.Add(q);
                                     status = "Snipe! Let's Go!";
+                                    var message = "MySql: Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
+                                        (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
+                                        " Status: " + status;
+
+                                    Logger.Write(message, LogLevel.Info);
+                                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
                                 }
                                 else
                                 {
@@ -967,12 +976,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         status = "IV too low or user choosed ignore unknown IV pokemon";
                     }
-                    var message = "MySql: Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
-                        (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
-                        " Status: " + status;
-
-                    Logger.Write(message, LogLevel.Info);
-                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
                 }
                 return locationsToSnipe.OrderBy(q => q.ExpirationTimestamp).ToList();
             }
