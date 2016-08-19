@@ -14,6 +14,7 @@ using PoGo.NecroBot.Logic.Utils;
 using PokemonGo.RocketAPI.Extensions;
 using POGOProtos.Map.Fort;
 using POGOProtos.Networking.Responses;
+using POGOProtos.Inventory.Item;
 
 #endregion
 
@@ -57,7 +58,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             var stopsHit = 0;
             var RandomStop = 0;
             var rc = new Random(); //initialize pokestop random cleanup counter first time
-            storeRI = rc.Next(8, 15);
+            storeRI = rc.Next(1, 5);
             RandomNumber = rc.Next(4, 11);
             
             var eggWalker = new EggWalker(1000, session);
@@ -203,11 +204,16 @@ namespace PoGo.NecroBot.Logic.Tasks
                     }
                 }
 
-                var RandomSnape = rc.Next(1, 5);
+                DateTime lastCatchPokemons = DateTime.Now;
+                int stayTimeInSeconds = session.LogicSettings.StayTimeAtEachStop + rc.Next(1, 60);
+                Logger.Write($"Stay at this pokestop for {stayTimeInSeconds} seconds.");
                 do
                 {
+                    // If pokemball is not enought, break out to get balls.
+                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken)) { break; }
+
                     if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
-                        await SnipePokemonTask.Execute(session, cancellationToken);
+                    await SnipePokemonTask.Execute(session, cancellationToken);
 
                     // Catch normal map Pokemon
                     await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
@@ -220,7 +226,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
                     }
 
-                } while (++RandomSnape < RandomNumber);
+                } while (lastCatchPokemons.AddSeconds(stayTimeInSeconds) > DateTime.Now);
 
                 if (++stopsHit >= storeRI) //TODO: OR item/pokemon bag is full //check stopsHit against storeRI random without dividing.
                 {
@@ -281,6 +287,32 @@ namespace PoGo.NecroBot.Logic.Tasks
                 );
 
             return pokeStops.ToList();
+        }
+
+        public static async Task<bool> CheckPokeballsToSnipe(int minPokeballs, ISession session, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Refresh inventory so that the player stats are fresh
+            await session.Inventory.RefreshCachedInventory();
+
+            var pokeBallsCount = await session.Inventory.GetItemAmountByType(ItemId.ItemPokeBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemGreatBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemUltraBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemMasterBall);
+
+            if (pokeBallsCount < minPokeballs)
+            {
+                session.EventDispatcher.Send(new SnipeEvent
+                {
+                    Message =
+                        session.Translation.GetTranslation(TranslationString.NotEnoughPokeballsToSnipe, pokeBallsCount,
+                            minPokeballs)
+                });
+                return false;
+            }
+
+            return true;
         }
     }
 }

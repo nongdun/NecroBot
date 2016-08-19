@@ -91,6 +91,7 @@ namespace PoGo.NecroBot.Logic
         double WalkingSpeedVariant { get; }
         bool ShowVariantWalking { get; }
         bool RandomlyPauseAtStops { get; }
+        int StayTimeAtEachStop { get; }
         bool FastSoftBanBypass { get; }
         bool EvolveAllPokemonWithEnoughCandy { get; }
         bool KeepPokemonsThatCanEvolve { get; }
