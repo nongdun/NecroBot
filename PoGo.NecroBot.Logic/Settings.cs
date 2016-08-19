@@ -297,7 +297,8 @@ namespace PoGo.NecroBot.Logic
         public double WalkingSpeedVariant = 1.2;
         public bool ShowVariantWalking = true;
         public bool RandomlyPauseAtStops = true;
-        public int StayTimeAtEachStop = 60;
+        public bool UseStayAtPokeStop = false;
+        public int StayMaxTimeAtEachStop = 60;
         public int MaxSpawnLocationOffset = 10;
         public int MaxTravelDistanceInMeters = 1000;
     }
@@ -1310,7 +1311,8 @@ namespace PoGo.NecroBot.Logic
         public double WalkingSpeedVariant => _settings.LocationSettings.WalkingSpeedVariant;
         public bool ShowVariantWalking => _settings.LocationSettings.ShowVariantWalking;
         public bool FastSoftBanBypass => _settings.SoftBanSettings.FastSoftBanBypass;
-        public int StayTimeAtEachStop => _settings.LocationSettings.StayTimeAtEachStop;
+        public bool UseStayAtPokeStop => _settings.LocationSettings.UseStayAtPokeStop;
+        public int StayMaxTimeAtEachStop => _settings.LocationSettings.StayMaxTimeAtEachStop;
         public bool EvolveAllPokemonWithEnoughCandy => _settings.PokemonSettings.EvolveAllPokemonWithEnoughCandy;
         public bool KeepPokemonsThatCanEvolve => _settings.PokemonSettings.KeepPokemonsThatCanEvolve;
         public bool TransferDuplicatePokemon => _settings.PokemonSettings.TransferDuplicatePokemon;

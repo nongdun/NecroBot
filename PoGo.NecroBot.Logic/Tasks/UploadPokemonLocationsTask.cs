@@ -34,8 +34,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 Logger.Write($"mysql execute error {e.ToString()}", LogLevel.Warning);
             }
 
-            Logger.Write($"mysql execute result {result.ToString()}", LogLevel.Info);
-
+            //Logger.Write($"mysql execute result {result.ToString()}", LogLevel.Info);
         }
     }
 }
