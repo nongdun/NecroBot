@@ -419,27 +419,36 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             session.EventDispatcher.Send(new SnipeModeEvent { Active = true });
 
-            List<MapPokemon> catchablePokemon;
-            try
-            {
-                await session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
-
-                session.EventDispatcher.Send(new UpdatePositionEvent
+            List<MapPokemon> catchablePokemon = new List<MapPokemon>();
+            
+            for(int i=0;i<3;i++)
+            { 
+                try
                 {
-                    Longitude = longitude,
-                    Latitude = latitude
-                });
+                    await session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
 
-                var mapObjects = session.Client.Map.GetMapObjects().Result;
-                catchablePokemon =
-                    mapObjects.Item1.MapCells.SelectMany(q => q.CatchablePokemons)
-                        .Where(q => pokemonIds.Contains(q.PokemonId))
-                        .OrderByDescending(pokemon => PokemonInfo.CalculateMaxCpMultiplier(pokemon.PokemonId))
-                        .ToList();
-            }
-            finally
-            {
-                await session.Client.Player.UpdatePlayerLocation(CurrentLatitude, CurrentLongitude, session.Client.CurrentAltitude);
+                    session.EventDispatcher.Send(new UpdatePositionEvent
+                    {
+                        Longitude = longitude,
+                        Latitude = latitude
+                    });
+
+                    var mapObjects = session.Client.Map.GetMapObjects().Result;
+                    catchablePokemon =
+                        mapObjects.Item1.MapCells.SelectMany(q => q.CatchablePokemons)
+                            .Where(q => pokemonIds.Contains(q.PokemonId))
+                            .OrderByDescending(pokemon => PokemonInfo.CalculateMaxCpMultiplier(pokemon.PokemonId))
+                            .ToList();
+                }
+                finally
+                {
+                    await session.Client.Player.UpdatePlayerLocation(CurrentLatitude, CurrentLongitude, session.Client.CurrentAltitude);
+                }
+
+                if(catchablePokemon.Count > 0)
+                {
+                    break;
+                }
             }
 
             if (catchablePokemon.Count == 0)
