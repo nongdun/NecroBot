@@ -108,13 +108,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                         //Catch Incense Pokemon
                         await CatchIncensePokemonsTask.Execute(session, cancellationToken);
 
-                        if(lastSnipeTime.AddMilliseconds(session.LogicSettings.MinDelayBetweenSnipes)<DateTime.Now)
-                        { 
-                            if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
-                                await SnipePokemonTask.Execute(session, cancellationToken);
-                            lastSnipeTime = DateTime.Now;
-                        }
-
                         return true;
                     },
                     session,
@@ -209,7 +202,26 @@ namespace PoGo.NecroBot.Logic.Tasks
                         Thread.Sleep(RandomWaitTime);
                     }
                 }
-              
+
+                var RandomSnape = rc.Next(1, 5);
+                do
+                {
+                    if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                        await SnipePokemonTask.Execute(session, cancellationToken);
+
+                    // Catch normal map Pokemon
+                    await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                    //Catch Incense Pokemon
+                    await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+
+                    //Catch Lure Pokemon
+                    if (pokeStop.LureInfo != null)
+                    {
+                        await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
+                    }
+
+                } while (++RandomSnape < RandomNumber);
+
                 if (++stopsHit >= storeRI) //TODO: OR item/pokemon bag is full //check stopsHit against storeRI random without dividing.
                 {
                     storeRI = rc.Next(6, 12); //set new storeRI for new random value
@@ -248,9 +260,6 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                     await GetPokeDexCount.Execute(session, cancellationToken);
                 }
-
-                if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
-                    await SnipePokemonTask.Execute(session, cancellationToken);
             }
         }
 

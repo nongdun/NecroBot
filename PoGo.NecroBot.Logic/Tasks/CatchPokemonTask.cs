@@ -271,11 +271,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                     PokemonInfo.CalculateMaxCp(encounter is EncounterResponse
                         ? encounter.WildPokemon?.PokemonData
                         : encounter?.PokemonData);
-                evt.Perfection =
-                    Math.Round(
-                        PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
+                evt.Perfection = PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
                             ? encounter.WildPokemon?.PokemonData
-                            : encounter?.PokemonData));
+                            : encounter?.PokemonData);
                 evt.Probability =
                     Math.Round(probability * 100, 2);
                 evt.Distance = distance;

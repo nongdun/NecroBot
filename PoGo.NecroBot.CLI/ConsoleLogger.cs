@@ -71,7 +71,7 @@ namespace PoGo.NecroBot.CLI
                     Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] ({LoggingStrings.Farming}) {message}");
                     break;
                 case LogLevel.Sniper:
-                    Console.ForegroundColor = color == ConsoleColor.Black ? ConsoleColor.White : color;
+                    Console.ForegroundColor = color == ConsoleColor.Black ? ConsoleColor.DarkGray : color;
                     Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] ({LoggingStrings.Sniper}) {message}");
                     break;
                 case LogLevel.Recycling:

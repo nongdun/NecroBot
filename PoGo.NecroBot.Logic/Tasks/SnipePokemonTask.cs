@@ -216,32 +216,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                         pokemonIds = session.LogicSettings.PokemonToSnipe.Pokemon;
                     }
 
-                    if (session.LogicSettings.GetSniperInfoFromMysql)
-                    {
-                        var _locationsToSnipe = GetSniperInfoFrom_Mysql(session, pokemonIds);
-                        if (_locationsToSnipe != null && _locationsToSnipe.Any())
-                        {
-                            foreach (var location in _locationsToSnipe)
-                            {
-                                if (!LocsVisited.Contains(new PokemonLocation(location.Latitude, location.Longitude)))
-                                {
-                                    session.EventDispatcher.Send(new SnipeScanEvent
-                                    {
-                                        Bounds = new Location(location.Latitude, location.Longitude),
-                                        PokemonId = location.Id,
-                                        Source = "MySql",
-                                        Iv = location.IV
-                                    });
-
-                                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
-                                        return;
-
-                                    await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
-                                }
-                            }
-                        }
-                    }
-
                     if (session.LogicSettings.UseSnipeLocationServer)
                     {
                         var locationsToSnipe = SnipeLocations?.Where(q =>
@@ -268,6 +242,32 @@ namespace PoGo.NecroBot.Logic.Tasks
                                         Bounds = new Location(location.Latitude, location.Longitude),
                                         PokemonId = location.Id,
                                         Source = session.LogicSettings.SnipeLocationServer,
+                                        Iv = location.IV
+                                    });
+
+                                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
+                                        return;
+
+                                    await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
+                                }
+                            }
+                        }
+                    }
+
+                    if (session.LogicSettings.GetSniperInfoFromMysql)
+                    {
+                        var _locationsToSnipe = GetSniperInfoFrom_Mysql(session, pokemonIds);
+                        if (_locationsToSnipe != null && _locationsToSnipe.Any())
+                        {
+                            foreach (var location in _locationsToSnipe)
+                            {
+                                if (!LocsVisited.Contains(new PokemonLocation(location.Latitude, location.Longitude)))
+                                {
+                                    session.EventDispatcher.Send(new SnipeScanEvent
+                                    {
+                                        Bounds = new Location(location.Latitude, location.Longitude),
+                                        PokemonId = location.Id,
+                                        Source = "MySql",
                                         Iv = location.IV
                                     });
 
@@ -518,19 +518,22 @@ namespace PoGo.NecroBot.Logic.Tasks
                     await Task.Delay(session.LogicSettings.DelayBetweenPokemonCatch, cancellationToken);
             }
 
-            if (!catchedPokemon)
-            {
-                session.EventDispatcher.Send(new SnipeEvent
-                {
-                    Message = session.Translation.GetTranslation(TranslationString.NoPokemonToSnipe)
-                });
-            }
+            //if (!catchedPokemon)
+            //{
+            //    session.EventDispatcher.Send(new SnipeEvent
+            //    {
+            //        Message = session.Translation.GetTranslation(TranslationString.NoPokemonToSnipe)
+            //    });
+            //}
 
             _lastSnipe = DateTime.Now;
 
             session.EventDispatcher.Send(new SnipeModeEvent { Active = false });
-            await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
 
+            if (catchedPokemon)
+            { 
+                await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
+            }
         }
 
         private static ScanResult SnipeScanForPokemon(ISession session, Location location)
@@ -755,7 +758,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
                         " Status: " + status;
 
-                    System.Diagnostics.Debug.Print(message);
+                    Logger.Write(message, LogLevel.Info);
                     session.EventDispatcher.Send(new SnipeEvent { Message = message });
                 }
                 return locationsToSnipe.OrderBy(q => q.ExpirationTimestamp).ToList();
@@ -847,6 +850,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                                 {
                                     locationsToSnipe.Add(q);
                                     status = "Snipe! Let's Go!";
+
+                                    var message = "Pokewatcher:  Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
+                                                  (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
+                                                   " Status: " + status;
+                                    Logger.Write(message, LogLevel.Info);
+                                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
                                 }
                                 else
                                 {
@@ -867,12 +876,6 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         status = "IV too low  or user choosed ignore unknown IV pokemon";
                     }
-                    var message = "Pokewatcher:  Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
-                        (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
-                        " Status: " + status;
-
-                    System.Diagnostics.Debug.Print(message);
-                    session.EventDispatcher.Send(new SnipeEvent { Message = message });
 
                 }
                 return locationsToSnipe.OrderBy(q => q.ExpirationTimestamp).ToList();
@@ -954,11 +957,11 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         status = "IV too low or user choosed ignore unknown IV pokemon";
                     }
-                    var message = "Pokesniper: Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
+                    var message = "MySql: Found a " + q.Id + " in " + q.Latitude.ToString("0.0000") + "," + q.Longitude.ToString("0.0000") + " Time Remain:" +
                         (q.ExpirationTimestamp - DateTime.Now).TotalSeconds.ToString("0") + "s " +
                         " Status: " + status;
 
-                    System.Diagnostics.Debug.Print(message);
+                    Logger.Write(message, LogLevel.Info);
                     session.EventDispatcher.Send(new SnipeEvent { Message = message });
                 }
                 return locationsToSnipe.OrderBy(q => q.ExpirationTimestamp).ToList();
