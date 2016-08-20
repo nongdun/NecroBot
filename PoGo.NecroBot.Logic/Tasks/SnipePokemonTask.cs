@@ -434,7 +434,13 @@ namespace PoGo.NecroBot.Logic.Tasks
             { 
                 try
                 {
-                    await session.Client.Player.UpdatePlayerLocation(latitude, longitude, session.Client.CurrentAltitude);
+                    Random rc = new Random();
+                    double _latitude = latitude;
+                    double _longitude = longitude;
+                    _latitude += (rc.NextDouble() / 1000) * i * Math.Pow(-1, i);
+                    _longitude += (rc.NextDouble() / 1000) * i * Math.Pow(-1, i + 1);
+
+                    await session.Client.Player.UpdatePlayerLocation(_latitude, _longitude, session.Client.CurrentAltitude);
 
                     session.EventDispatcher.Send(new UpdatePositionEvent
                     {
