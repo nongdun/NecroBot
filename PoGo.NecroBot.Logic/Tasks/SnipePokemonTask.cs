@@ -429,16 +429,19 @@ namespace PoGo.NecroBot.Logic.Tasks
             session.EventDispatcher.Send(new SnipeModeEvent { Active = true });
 
             List<MapPokemon> catchablePokemon = new List<MapPokemon>();
-            
-            for(int i=0;i<3;i++)
+
+            int encounterNumber = 0;
+            double _latitude = latitude;
+            double _longitude = longitude;
+            for (int i=0;i<3;i++)
             { 
                 try
                 {
-                    Random rc = new Random();
-                    double _latitude = latitude;
-                    double _longitude = longitude;
-                    _latitude += (rc.NextDouble() / 1000) * i * Math.Pow(-1, i);
-                    _longitude += (rc.NextDouble() / 1000) * i * Math.Pow(-1, i + 1);
+                    //Random rc = new Random();
+                    //_latitude = latitude;
+                    //_longitude = longitude;
+                    //_latitude += (rc.NextDouble() / 10000) * i * Math.Pow(-1, i);
+                    //_longitude += (rc.NextDouble() / 10000) * i * Math.Pow(-1, i + 1);
 
                     await session.Client.Player.UpdatePlayerLocation(_latitude, _longitude, session.Client.CurrentAltitude);
 
@@ -460,10 +463,12 @@ namespace PoGo.NecroBot.Logic.Tasks
                     await session.Client.Player.UpdatePlayerLocation(CurrentLatitude, CurrentLongitude, session.Client.CurrentAltitude);
                 }
 
-                if(catchablePokemon.Count > 0)
+                if (catchablePokemon.Count > 0)
                 {
                     break;
                 }
+                await Task.Delay(400, cancellationToken);
+                encounterNumber++;
             }
 
             if (catchablePokemon.Count == 0)
@@ -472,6 +477,10 @@ namespace PoGo.NecroBot.Logic.Tasks
                 // locations with no pokemon.
                 if (!LocsVisited.Contains(new PokemonLocation(latitude, longitude)))
                     LocsVisited.Add(new PokemonLocation(latitude, longitude));
+            }
+            else
+            {
+                Logger.Write($"Retry times: {encounterNumber} at {_latitude:#0.000000},{_longitude:#0.000000}", LogLevel.Info);
             }
 
             foreach (var pokemon in catchablePokemon)

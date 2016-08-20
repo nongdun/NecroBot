@@ -52,7 +52,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             {
                 if(pokemonIv < session.LogicSettings.MinIvPercentageToCatch)
                 {
-                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% at [{pokemon.Latitude:#00.0000}, {pokemon.Longitude:#00.0000}] NOT to catch.", LogLevel.Info);
+                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% at [{pokemon.Latitude:#0.0000},{pokemon.Longitude:#0.0000}] NOT to catch.", LogLevel.Info);
                     return;
                 }
             }
