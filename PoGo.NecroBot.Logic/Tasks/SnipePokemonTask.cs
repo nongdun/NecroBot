@@ -219,8 +219,16 @@ namespace PoGo.NecroBot.Logic.Tasks
                     if (session.LogicSettings.GetSniperInfoFromMysql)
                     {
                         var _locationsToSnipe = GetSniperInfoFrom_Mysql(session, pokemonIds);
+
                         if (_locationsToSnipe != null && _locationsToSnipe.Any())
                         {
+                            List<PokemonId> _pokemonIds = new List<PokemonId>(pokemonIds);
+                            foreach (var location in _locationsToSnipe)
+                            {
+                                if(!_pokemonIds.Contains(location.Id))
+                                    _pokemonIds.Add(location.Id);
+                            }
+
                             foreach (var location in _locationsToSnipe)
                             {
                                 if (!LocsVisited.Contains(new PokemonLocation(location.Latitude, location.Longitude)))
@@ -236,7 +244,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                                     if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
                                         return;
 
-                                    await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
+                                    await Snipe(session, _pokemonIds, location.Latitude, location.Longitude, cancellationToken);
                                 }
                             }
                         }
@@ -939,6 +947,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 foreach (var q in mysqlLocationsToSnipe)
                 {
                     if (q.IV > 98) { locationsToSnipe.Add(q);  continue; }
+                    if (q.IV < session.LogicSettings.MinIvPercentageToCatch) { continue; }
 
                     if (!session.LogicSettings.UseTransferIvForSnipe || (q.IV == 0 && !session.LogicSettings.SnipeIgnoreUnknownIv) || (q.IV >= session.Inventory.GetPokemonTransferFilter(q.Id).KeepMinIvPercentage))
                     {
