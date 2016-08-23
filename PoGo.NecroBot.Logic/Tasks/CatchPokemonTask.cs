@@ -72,6 +72,37 @@ namespace PoGo.NecroBot.Logic.Tasks
                     ? encounter.WildPokemon?.PokemonData
                     : encounter?.PokemonData);
 
+            if (session.LogicSettings.OnlyCatchHighIvPokemon)
+            {
+                if(pokemonIv < session.LogicSettings.MinIvPercentageToCatch)
+                {
+                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% NOT to catch.", LogLevel.Info);
+                    return;
+                }
+            }
+
+            if (session.LogicSettings.UploadPokemonLocationToServer)
+            {
+                //upload to mysql server
+                SniperInfo pokemonInfo = new SniperInfo();
+                pokemonInfo.EncounterId = pokemon.EncounterId;
+                pokemonInfo.Latitude = pokemon.Latitude;
+                pokemonInfo.Longitude = pokemon.Longitude;
+                pokemonInfo.Id = pokemon.PokemonId;
+                pokemonInfo.SpawnPointId = pokemon.SpawnPointId;
+                pokemonInfo.IV = pokemonIv;
+                long unixDate = pokemon.ExpirationTimestampMs;
+                DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                pokemonInfo.ExpirationTimestamp = start.AddMilliseconds(unixDate).ToLocalTime();
+
+                await UploadPokemonLocationsTask.Execute(session, pokemonInfo, cancellationToken);
+
+                if (session.LogicSettings.DetectMode && pokemonIv < 99)
+                {
+                    return;
+                }
+            }
+
             // Calculate distance away
             var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
                 session.Client.CurrentLongitude,
@@ -284,11 +315,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                     PokemonInfo.CalculateMaxCp(encounter is EncounterResponse
                         ? encounter.WildPokemon?.PokemonData
                         : encounter?.PokemonData);
-                evt.Perfection =
-                    Math.Round(
-                        PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
+                evt.Perfection = PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
                             ? encounter.WildPokemon?.PokemonData
-                            : encounter?.PokemonData));
+                            : encounter?.PokemonData);
                 evt.Probability =
                     Math.Round(probability * 100, 2);
                 evt.Distance = distance;

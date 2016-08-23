@@ -34,6 +34,8 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         double WalkingSpeedVariant { get; }
         bool ShowVariantWalking { get; }
         bool RandomlyPauseAtStops { get; }
+        bool UseStayAtPokeStop { get; }        
+        int StayMaxTimeAtEachStop { get; }
         bool FastSoftBanBypass { get; }
         bool EvolveAllPokemonWithEnoughCandy { get; }
         bool KeepPokemonsThatCanEvolve { get; }
@@ -72,6 +74,10 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         bool UsePokemonSniperFilterOnly { get; }
         int KeepMinDuplicatePokemon { get; }
         bool PrioritizeIvOverCp { get; }
+        bool OnlyCatchHighIvPokemon { get; }
+        double MinIvPercentageToCatch { get; }
+        bool UploadPokemonLocationToServer { get; }
+        bool DetectMode { get; }
         int AmountOfTimesToUpgradeLoop { get; }
         int GetMinStarDustForLevelUp { get; }
         bool UseLuckyEggConstantly { get; }
@@ -114,6 +120,7 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         bool GetSniperInfoFromPokeSnipers { get; }
         bool GetSniperInfoFromPokeWatchers { get; }
         bool GetSniperInfoFromSkiplagged { get; }
+        bool GetSniperInfoFromMysql { get; }
         bool UseSnipeLocationServer { get; }
         bool UseTransferIvForSnipe { get; }
         bool SnipeIgnoreUnknownIv { get; }
