@@ -69,6 +69,10 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public bool PrioritizeIvOverCp;
         public int KeepMinDuplicatePokemon = 1;
         /*NotCatch*/
+        public bool OnlyCatchHighIvPokemon = false;
+        public double MinIvPercentageToCatch = 70;
+        public bool UploadPokemonLocationToServer = false;
+        public bool DetectMode = false;
         public bool UsePokemonToNotCatchFilter;
         public bool UsePokemonSniperFilterOnly;
         /*Dump Stats*/

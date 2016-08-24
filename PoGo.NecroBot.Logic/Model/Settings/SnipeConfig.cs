@@ -10,6 +10,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public bool GetSniperInfoFromPokeSnipers = true;
         public bool GetSniperInfoFromPokeWatchers = true;
         public bool GetSniperInfoFromSkiplagged = true;
+        public bool GetSniperInfoFromMysql = false;
         public int MinPokeballsToSnipe = 20;
         public int MinPokeballsWhileSnipe = 0;
         public int MinDelayBetweenSnipes = 60000;

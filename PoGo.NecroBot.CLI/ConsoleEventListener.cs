@@ -309,8 +309,7 @@ namespace PoGo.NecroBot.CLI
                         candy,
                         pokemon.Item7
                     ),
-                    LogLevel.Info,
-                    ConsoleColor.Yellow
+                    LogLevel.Info
                 );
             }
         }
