@@ -331,6 +331,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
                     }
 
+                    Logger.Write($"Stay at this pokestop remain {(lastCatchPokemons.AddSeconds(stayTimeInSeconds) - DateTime.Now).TotalSeconds.ToString("0")} seconds.", LogLevel.Info);
                 } while (lastCatchPokemons.AddSeconds(stayTimeInSeconds) > DateTime.Now);
             }
         }

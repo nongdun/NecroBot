@@ -257,6 +257,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                                     if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsWhileSnipe + 1, session, cancellationToken))
                                         return;
 
+                                    if (!CheckSnipeConditions(session) && location.IV < 98) return;
                                     await Snipe(session, pokemonIds, location.Latitude, location.Longitude, cancellationToken);
                                 }
                             }
@@ -447,7 +448,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             List<MapPokemon> catchablePokemon = new List<MapPokemon>();
             
-            for(int i=0;i<3;i++)
+            for(int i=0;i<5;i++)
             { 
                 try
                 {
@@ -473,8 +474,11 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 if(catchablePokemon.Count > 0)
                 {
+                    Logger.Write($"Retry times: {i} at [{latitude.ToString("0.000000")},{longitude.ToString("0.000000")}]", LogLevel.Info);
                     break;
                 }
+
+                await Task.Delay(200, cancellationToken);
             }
 
             if (catchablePokemon.Count == 0)
@@ -565,7 +569,6 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             if (catchedPokemon)
             {
-                session.Stats.SnipeCount++;
                 session.Stats.LastSnipeTime = _lastSnipe;
 	            await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
             }
@@ -966,6 +969,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 foreach (var q in mysqlLocationsToSnipe)
                 {
                     if (q.IV > 98) { locationsToSnipe.Add(q);  continue; }
+                    if (q.IV< session.LogicSettings.MinIvPercentageToCatch) { continue; }
 
                     if (!session.LogicSettings.UseTransferIvForSnipe || (q.IV == 0 && !session.LogicSettings.SnipeIgnoreUnknownIv) || (q.IV >= session.Inventory.GetPokemonTransferFilter(q.Id).KeepMinIvPercentage))
                     {

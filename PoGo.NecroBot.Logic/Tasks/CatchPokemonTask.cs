@@ -75,7 +75,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             {
                 if(pokemonIv < session.LogicSettings.MinIvPercentageToCatch)
                 {
-                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% NOT to catch.", LogLevel.Info);
+                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% at [{pokemon.Latitude.ToString("0.0000")},{pokemon.Longitude.ToString("0.0000")}] NOT to catch.", LogLevel.Info);
                     return;
                 }
             }
@@ -247,6 +247,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                 {
                     var totalExp = 0;
+                    session.Stats.SnipeCount++;
 
                     foreach (var xp in caughtPokemonResponse.CaptureAward.Xp)
                     {
