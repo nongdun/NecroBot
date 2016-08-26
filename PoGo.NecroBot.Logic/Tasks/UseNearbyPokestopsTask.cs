@@ -14,6 +14,8 @@ using PokemonGo.RocketAPI.Extensions;
 using POGOProtos.Map.Fort;
 using POGOProtos.Networking.Responses;
 using PoGo.NecroBot.Logic.Strategies.Walk;
+using POGOProtos.Inventory.Item;
+using PoGo.NecroBot.Logic.Logging;
 
 #endregion
 
@@ -305,6 +307,32 @@ namespace PoGo.NecroBot.Logic.Tasks
                 }
             }
 
+            if (session.LogicSettings.UseStayAtPokeStop)
+            {
+                DateTime lastCatchPokemons = DateTime.Now;
+                int stayTimeInSeconds = rc.Next(0, session.LogicSettings.StayMaxTimeAtEachStop);
+                Logger.Write($"Stay at this pokestop for {stayTimeInSeconds} seconds.");
+                do
+                {
+                    // If pokemball is not enought, break out to get balls.
+                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken)) { break; }
+
+                    if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                        await SnipePokemonTask.Execute(session, cancellationToken);
+
+                    // Catch normal map Pokemon
+                    await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                    //Catch Incense Pokemon
+                    await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+
+                    //Catch Lure Pokemon
+                    if (pokeStop.LureInfo != null)
+                    {
+                        await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
+                    }
+
+                } while (lastCatchPokemons.AddSeconds(stayTimeInSeconds) > DateTime.Now);
+            }
         }
 
         //Please do not change GetPokeStops() in this file, it's specifically set
@@ -364,6 +392,32 @@ namespace PoGo.NecroBot.Logic.Tasks
                 );
 
             return pokeStops.ToList();
+        }
+
+        public static async Task<bool> CheckPokeballsToSnipe(int minPokeballs, ISession session, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Refresh inventory so that the player stats are fresh
+            await session.Inventory.RefreshCachedInventory();
+
+            var pokeBallsCount = await session.Inventory.GetItemAmountByType(ItemId.ItemPokeBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemGreatBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemUltraBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemMasterBall);
+
+            if (pokeBallsCount < minPokeballs)
+            {
+                session.EventDispatcher.Send(new SnipeEvent
+                {
+                    Message =
+                        session.Translation.GetTranslation(TranslationString.NotEnoughPokeballsToSnipe, pokeBallsCount,
+                            minPokeballs)
+                });
+                return false;
+            }
+
+            return true;
         }
     }
 }

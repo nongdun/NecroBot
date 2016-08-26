@@ -145,6 +145,8 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public int MinPokeballsWhileSnipe => _settings.SnipeConfig.MinPokeballsWhileSnipe;
         public int MaxPokeballsPerPokemon => _settings.PokemonConfig.MaxPokeballsPerPokemon;
         public bool RandomlyPauseAtStops => _settings.LocationConfig.RandomlyPauseAtStops;
+        public bool UseStayAtPokeStop => _settings.LocationConfig.UseStayAtPokeStop;
+        public int StayMaxTimeAtEachStop => _settings.LocationConfig.StayMaxTimeAtEachStop;
         public SnipeSettings PokemonToSnipe => _settings.PokemonToSnipe;
         public string SnipeLocationServer => _settings.SnipeConfig.SnipeLocationServer;
         public int SnipeLocationServerPort => _settings.SnipeConfig.SnipeLocationServerPort;

@@ -13,6 +13,8 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public double WalkingSpeedVariant = 1.2;
         public bool ShowVariantWalking = false;
         public bool RandomlyPauseAtStops = true;
+        public bool UseStayAtPokeStop = false;
+        public int StayMaxTimeAtEachStop = 60;
         public int MaxSpawnLocationOffset = 10;
         public int MaxTravelDistanceInMeters = 1000;
         [JsonIgnore]
