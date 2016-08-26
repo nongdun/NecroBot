@@ -338,9 +338,10 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await TransferDuplicatePokemonTask.Execute(session, cancellationToken);
                 }
 
-                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 0);
             } while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
                      caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
+
+            DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 0);
         }
 
         private static async Task<ItemId> GetBestBall(ISession session, dynamic encounter, float probability)

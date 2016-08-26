@@ -28,6 +28,7 @@ namespace PoGo.NecroBot.Logic.Tasks
         private static Random rc; //initialize pokestop random cleanup counter first time
         private static int storeRI;
         private static int RandomNumber;
+        private static int walkStepCount;
 
         internal static void Initialize()
         {
@@ -36,6 +37,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             rc = new Random();
             storeRI = rc.Next(8, 15);
             RandomNumber = rc.Next(4, 11);
+            walkStepCount = 0;
         }
 
         private static bool SearchThresholdExceeds(ISession session)
@@ -199,10 +201,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     LocationUtils.getElevation(pokeStop.Latitude, pokeStop.Longitude)),
                 async () =>
                 {
-                    // Catch normal map Pokemon
-                    await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
-                    //Catch Incense Pokemon
-                    await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+                    await CatchPokemonWhileWalking(session, cancellationToken);
                     return true;
                 },
                 session,
@@ -331,6 +330,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
                     }
 
+                    await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
                     Logger.Write($"Stay at this pokestop remain {(lastCatchPokemons.AddSeconds(stayTimeInSeconds) - DateTime.Now).TotalSeconds.ToString("0")} seconds.", LogLevel.Info);
                 } while (lastCatchPokemons.AddSeconds(stayTimeInSeconds) > DateTime.Now);
             }
@@ -420,5 +420,22 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             return true;
         }
+
+        private static async Task CatchPokemonWhileWalking(ISession session, CancellationToken cancellationToken)
+        {
+            if (++walkStepCount >= 5)
+            {
+                walkStepCount = 0;
+
+                if (session.LogicSettings.GetSniperInfoFromMysql)
+                    await SnipePokemonFromMySqlTask.Execute(session, cancellationToken);
+
+                // Catch normal map Pokemon
+                await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                //Catch Incense Pokemon
+                await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+            }
+        }
+
     }
 }
