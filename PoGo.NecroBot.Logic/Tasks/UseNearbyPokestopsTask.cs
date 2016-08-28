@@ -43,6 +43,9 @@ namespace PoGo.NecroBot.Logic.Tasks
         private static bool SearchThresholdExceeds(ISession session)
         {
             if (!session.LogicSettings.UsePokeStopLimit) return false;
+
+            Logger.Write($"PokeStop farmed {session.Stats.PokeStopTimestamps.Count}/{session.LogicSettings.PokeStopLimit} in 24 hours", LogLevel.Info);
+
             if (session.Stats.PokeStopTimestamps.Count >= session.LogicSettings.PokeStopLimit)
             {
                 // delete uesless data
@@ -53,6 +56,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 }
                 var sec = (DateTime.Now - new DateTime(session.Stats.PokeStopTimestamps.First())).TotalSeconds;
                 var limit = session.LogicSettings.PokeStopLimitMinutes * 60;
+
                 if (sec < limit)
                 {
                     session.EventDispatcher.Send(new ErrorEvent { Message = session.Translation.GetTranslation(TranslationString.PokeStopExceeds, Math.Round(limit - sec)) });
@@ -318,7 +322,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
                         await SnipePokemonTask.Execute(session, cancellationToken);
 
-                    if (lastSnipeTime.AddSeconds(10) < DateTime.Now)
+                    if (lastSnipeTime.AddSeconds(60) < DateTime.Now)
                     {
                         // Catch normal map Pokemon
                         await CatchNearbyPokemonsTask.Execute(session, cancellationToken);

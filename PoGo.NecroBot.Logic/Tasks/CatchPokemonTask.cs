@@ -27,6 +27,9 @@ namespace PoGo.NecroBot.Logic.Tasks
         private static bool CatchThresholdExceeds(ISession session)
         {
             if (!session.LogicSettings.UseCatchLimit) return false;
+
+            Logger.Write($"Pokemon catched { session.Stats.PokemonTimestamps.Count}/{ session.LogicSettings.CatchPokemonLimit} in 24 hours", LogLevel.Info);
+
             if (session.Stats.PokemonTimestamps.Count >= session.LogicSettings.CatchPokemonLimit)
             {
                 // delete uesless data
@@ -55,14 +58,6 @@ namespace PoGo.NecroBot.Logic.Tasks
             // If the encounter is null nothing will work below, so exit now
             if (encounter == null) return;
 
-            if (CatchThresholdExceeds(session)) return;
-
-            float probability = encounter.CaptureProbability?.CaptureProbability_[0];
-
-            // Check for pokeballs before proceeding
-            var pokeball = await GetBestBall(session, encounter, probability);
-            if (pokeball == ItemId.ItemUnknown) return;
-
             //Calculate CP and IV
             var pokemonCp = (encounter is EncounterResponse
                                ? encounter.WildPokemon?.PokemonData?.Cp
@@ -70,6 +65,14 @@ namespace PoGo.NecroBot.Logic.Tasks
             var pokemonIv = PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
                     ? encounter.WildPokemon?.PokemonData
                     : encounter?.PokemonData);
+
+            if (CatchThresholdExceeds(session) && pokemonIv < 99) return;
+
+            float probability = encounter.CaptureProbability?.CaptureProbability_[0];
+
+            // Check for pokeballs before proceeding
+            var pokeball = await GetBestBall(session, encounter, probability);
+            if (pokeball == ItemId.ItemUnknown) return;
 
             if (session.LogicSettings.OnlyCatchHighIvPokemon)
             {
