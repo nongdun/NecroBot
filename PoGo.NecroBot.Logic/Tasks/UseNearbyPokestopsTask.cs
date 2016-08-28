@@ -315,31 +315,30 @@ namespace PoGo.NecroBot.Logic.Tasks
                 Logger.Write($"Stay at this pokestop for {stayTimeInSeconds} seconds.");
                 do
                 {
-                    if(lastSnipeTime.AddSeconds(5)< DateTime.Now)
-                    { 
-                        if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
-                            await SnipePokemonTask.Execute(session, cancellationToken);
+                    if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                        await SnipePokemonTask.Execute(session, cancellationToken);
 
-                        if(lastSnipeTime.AddSeconds(10) < DateTime.Now)
-                        { 
-                            // Catch normal map Pokemon
-                            await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
-                            //Catch Incense Pokemon
-                            await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+                    if (lastSnipeTime.AddSeconds(10) < DateTime.Now)
+                    {
+                        // Catch normal map Pokemon
+                        await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                        //Catch Incense Pokemon
+                        await CatchIncensePokemonsTask.Execute(session, cancellationToken);
 
-                            //Catch Lure Pokemon
-                            if (pokeStop.LureInfo != null)
-                            {
-                                await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
-                            }
+                        //Catch Lure Pokemon
+                        if (pokeStop.LureInfo != null)
+                        {
+                            await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
                         }
 
-                        // If pokemball is not enought, break out to get balls.
-                        if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken)) { break; }
-
                         lastSnipeTime = DateTime.Now;
-                        Logger.Write($"Stay at this pokestop remain {(arriveStopTime.AddSeconds(stayTimeInSeconds) - DateTime.Now).TotalSeconds.ToString("0")} seconds.", LogLevel.Info);
                     }
+
+                    // If pokemball is not enought, break out to get balls.
+                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken)) { break; }
+
+                    await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
+                    Logger.Write($"Stay at this pokestop remain {(arriveStopTime.AddSeconds(stayTimeInSeconds) - DateTime.Now).TotalSeconds.ToString("0")} seconds.", LogLevel.Info);
                 } while (arriveStopTime.AddSeconds(stayTimeInSeconds) > DateTime.Now);
             }
         }
