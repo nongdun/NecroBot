@@ -14,6 +14,7 @@ using PokemonGo.RocketAPI.Extensions;
 using POGOProtos.Map.Fort;
 using POGOProtos.Networking.Responses;
 using PoGo.NecroBot.Logic.Strategies.Walk;
+using POGOProtos.Inventory.Item;
 using PoGo.NecroBot.Logic.Logging;
 
 #endregion
@@ -28,6 +29,8 @@ namespace PoGo.NecroBot.Logic.Tasks
         private static int storeRI;
         private static int RandomNumber;
         private static List<FortData> pokestopList;
+		private static DateTime snipeTimeWhileWalk;
+
 
         internal static void Initialize()
         {
@@ -37,6 +40,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             storeRI = rc.Next(8, 15);
             RandomNumber = rc.Next(4, 11);
             pokestopList = new List<FortData>();
+			snipeTimeWhileWalk = DateTime.Now;
         }
 
         private static bool SearchThresholdExceeds(ISession session)
@@ -60,7 +64,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             }
 
             Logger.Write($"(POKESTOP LIMIT) {session.Stats.PokeStopTimestamps.Count}/{session.LogicSettings.PokeStopLimit}",
-                LogLevel.Info, ConsoleColor.Yellow);
+                LogLevel.Info);
             return false;
         }
 
@@ -110,10 +114,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         LocationUtils.getElevation(session, pokeStop.Latitude, pokeStop.Longitude)),
                     async () =>
                     {
-                        // Catch normal map Pokemon
-                        await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
-                        //Catch Incense Pokemon
-                        await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+                        await CatchPokemonWhileWalking(session, cancellationToken);
                         // Minor fix google route ignore pokestop
                         await LookPokestops(session, pokeStop, cancellationToken);
                         return true;
@@ -168,9 +169,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                                 await session.Navigation.Move(geo,
                                     async () =>
                                     {
-                                        await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
-                                        //Catch Incense Pokemon
-                                        await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+                                        await CatchPokemonWhileWalking(session, cancellationToken);
                                         return true;
                                     },
                                     session,
@@ -377,6 +376,41 @@ namespace PoGo.NecroBot.Logic.Tasks
                 }
             }
 
+            if (session.LogicSettings.UseStayAtPokeStop && 
+                await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe + session.LogicSettings.MinPokeballsWhileSnipe, session, cancellationToken))
+            {
+                DateTime arriveStopTime = DateTime.Now;
+                DateTime lastSnipeTime = DateTime.Now;
+                int stayTimeInSeconds = rc.Next(0, session.LogicSettings.StayMaxTimeAtEachStop);
+                Logger.Write($"Stay at this pokestop for {stayTimeInSeconds} seconds.");
+                do
+                {
+                    if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                        await SnipePokemonTask.Execute(session, cancellationToken);
+
+                    if (lastSnipeTime.AddSeconds(60) < DateTime.Now)
+                    {
+                        // Catch normal map Pokemon
+                        await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                        //Catch Incense Pokemon
+                        await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+
+                        //Catch Lure Pokemon
+                        if (pokeStop.LureInfo != null)
+                        {
+                            await CatchLurePokemonsTask.Execute(session, pokeStop, cancellationToken);
+                        }
+
+                        lastSnipeTime = DateTime.Now;
+                    }
+
+                    // If pokemball is not enought, break out to get balls.
+                    if (!await CheckPokeballsToSnipe(session.LogicSettings.MinPokeballsToSnipe, session, cancellationToken)) { break; }
+
+                    await Task.Delay(session.LogicSettings.DelayBetweenPlayerActions, cancellationToken);
+                    Logger.Write($"Stay at this pokestop remain {(arriveStopTime.AddSeconds(stayTimeInSeconds) - DateTime.Now).TotalSeconds.ToString("0")} seconds.", LogLevel.Info);
+                } while (arriveStopTime.AddSeconds(stayTimeInSeconds) > DateTime.Now);
+            }
         }
 
         //Please do not change GetPokeStops() in this file, it's specifically set
@@ -437,5 +471,48 @@ namespace PoGo.NecroBot.Logic.Tasks
 
             return pokeStops.ToList();
         }
+
+        public static async Task<bool> CheckPokeballsToSnipe(int minPokeballs, ISession session, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Refresh inventory so that the player stats are fresh
+            await session.Inventory.RefreshCachedInventory();
+
+            var pokeBallsCount = await session.Inventory.GetItemAmountByType(ItemId.ItemPokeBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemGreatBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemUltraBall);
+            pokeBallsCount += await session.Inventory.GetItemAmountByType(ItemId.ItemMasterBall);
+
+            if (pokeBallsCount < minPokeballs)
+            {
+                session.EventDispatcher.Send(new SnipeEvent
+                {
+                    Message =
+                        session.Translation.GetTranslation(TranslationString.NotEnoughPokeballsToSnipe, pokeBallsCount,
+                            minPokeballs)
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        private static async Task CatchPokemonWhileWalking(ISession session, CancellationToken cancellationToken)
+        {
+            if (snipeTimeWhileWalk.AddSeconds(10) < DateTime.Now)
+            {
+                if (session.LogicSettings.SnipeAtPokestops || session.LogicSettings.UseSnipeLocationServer)
+                    await SnipePokemonTask.Execute(session, cancellationToken);
+
+                // Catch normal map Pokemon
+                await CatchNearbyPokemonsTask.Execute(session, cancellationToken);
+                //Catch Incense Pokemon
+                await CatchIncensePokemonsTask.Execute(session, cancellationToken);
+
+                snipeTimeWhileWalk = DateTime.Now;
+            }
+        }
+
     }
 }

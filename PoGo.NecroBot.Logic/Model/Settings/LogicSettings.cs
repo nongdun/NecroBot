@@ -95,6 +95,10 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public bool UsePokemonSniperFilterOnly => _settings.PokemonConfig.UsePokemonSniperFilterOnly;
         public int KeepMinDuplicatePokemon => _settings.PokemonConfig.KeepMinDuplicatePokemon;
         public bool PrioritizeIvOverCp => _settings.PokemonConfig.PrioritizeIvOverCp;
+        public bool OnlyCatchHighIvPokemon => _settings.PokemonConfig.OnlyCatchHighIvPokemon;
+        public double MinIvPercentageToCatch => _settings.PokemonConfig.MinIvPercentageToCatch;
+        public bool UploadPokemonLocationToServer => _settings.PokemonConfig.UploadPokemonLocationToServer;
+        public bool DetectMode => _settings.PokemonConfig.DetectMode;
         public int MaxTravelDistanceInMeters => _settings.LocationConfig.MaxTravelDistanceInMeters;
         public string GpxFile => _settings.GPXConfig.GpxFile;
         public bool UseGpxPathing => _settings.GPXConfig.UseGpxPathing;
@@ -141,6 +145,8 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public int MinPokeballsWhileSnipe => _settings.SnipeConfig.MinPokeballsWhileSnipe;
         public int MaxPokeballsPerPokemon => _settings.PokemonConfig.MaxPokeballsPerPokemon;
         public bool RandomlyPauseAtStops => _settings.LocationConfig.RandomlyPauseAtStops;
+        public bool UseStayAtPokeStop => _settings.LocationConfig.UseStayAtPokeStop;
+        public int StayMaxTimeAtEachStop => _settings.LocationConfig.StayMaxTimeAtEachStop;
         public SnipeSettings PokemonToSnipe => _settings.PokemonToSnipe;
         public string SnipeLocationServer => _settings.SnipeConfig.SnipeLocationServer;
         public int SnipeLocationServerPort => _settings.SnipeConfig.SnipeLocationServerPort;
@@ -149,6 +155,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         public bool GetSniperInfoFromPokeSnipers => _settings.SnipeConfig.GetSniperInfoFromPokeSnipers;
         public bool GetSniperInfoFromPokeWatchers => _settings.SnipeConfig.GetSniperInfoFromPokeWatchers;
         public bool GetSniperInfoFromSkiplagged => _settings.SnipeConfig.GetSniperInfoFromSkiplagged;
+        public bool GetSniperInfoFromMysql => _settings.SnipeConfig.GetSniperInfoFromMysql;
         public bool UseSnipeLocationServer => _settings.SnipeConfig.UseSnipeLocationServer;
         public bool UseTransferIvForSnipe => _settings.SnipeConfig.UseTransferIvForSnipe;
         public bool SnipeIgnoreUnknownIv => _settings.SnipeConfig.SnipeIgnoreUnknownIv;

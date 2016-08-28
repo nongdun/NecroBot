@@ -110,6 +110,8 @@ namespace PoGo.NecroBot.Logic.State
                     Message = "Garbage information in PokestopTS.txt"
                 });
             }
+
+            session.Stats.PokeStopTimestamps.Clear();
             foreach (var l in list)
             {
                 session.Stats.PokeStopTimestamps.Add(l);
@@ -139,6 +141,8 @@ namespace PoGo.NecroBot.Logic.State
                     Message = "Garbage information in PokemonTS.txt"
                 });
             }
+
+            session.Stats.PokemonTimestamps.Clear();
             foreach (var l in list)
             {
                 session.Stats.PokemonTimestamps.Add(l);

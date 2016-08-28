@@ -45,7 +45,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             }
 
             Logger.Write($"(CATCH LIMIT) {session.Stats.PokemonTimestamps.Count}/{session.LogicSettings.CatchPokemonLimit}",
-                LogLevel.Info, ConsoleColor.Yellow);
+                LogLevel.Info);
             return false;
         }
 
@@ -58,14 +58,6 @@ namespace PoGo.NecroBot.Logic.Tasks
             // If the encounter is null nothing will work below, so exit now
             if (encounter == null) return;
 
-            if (CatchThresholdExceeds(session)) return;
-
-            float probability = encounter.CaptureProbability?.CaptureProbability_[0];
-
-            // Check for pokeballs before proceeding
-            var pokeball = await GetBestBall(session, encounter, probability);
-            if (pokeball == ItemId.ItemUnknown) return;
-
             //Calculate CP and IV
             var pokemonCp = (encounter is EncounterResponse
                                ? encounter.WildPokemon?.PokemonData?.Cp
@@ -73,6 +65,45 @@ namespace PoGo.NecroBot.Logic.Tasks
             var pokemonIv = PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
                     ? encounter.WildPokemon?.PokemonData
                     : encounter?.PokemonData);
+
+            if (CatchThresholdExceeds(session) && pokemonIv < 99) return;
+
+            float probability = encounter.CaptureProbability?.CaptureProbability_[0];
+
+            // Check for pokeballs before proceeding
+            var pokeball = await GetBestBall(session, encounter, probability);
+            if (pokeball == ItemId.ItemUnknown) return;
+
+            if (session.LogicSettings.OnlyCatchHighIvPokemon)
+            {
+                if(pokemonIv < session.LogicSettings.MinIvPercentageToCatch)
+                {
+                    Logger.Write($"Encounter {session.Translation.GetPokemonTranslation(pokemon.PokemonId)} with IV {pokemonIv:#00.00}% at [{pokemon.Latitude.ToString("0.0000")},{pokemon.Longitude.ToString("0.0000")}] NOT to catch.", LogLevel.Info);
+                    return;
+                }
+            }
+
+            if (session.LogicSettings.UploadPokemonLocationToServer)
+            {
+                //upload to mysql server
+                SniperInfo pokemonInfo = new SniperInfo();
+                pokemonInfo.EncounterId = pokemon.EncounterId;
+                pokemonInfo.Latitude = pokemon.Latitude;
+                pokemonInfo.Longitude = pokemon.Longitude;
+                pokemonInfo.Id = pokemon.PokemonId;
+                pokemonInfo.SpawnPointId = pokemon.SpawnPointId;
+                pokemonInfo.IV = pokemonIv;
+                long unixDate = pokemon.ExpirationTimestampMs;
+                DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                pokemonInfo.ExpirationTimestamp = start.AddMilliseconds(unixDate).ToLocalTime();
+
+                await UploadPokemonLocationsTask.Execute(session, pokemonInfo, cancellationToken);
+
+                if (session.LogicSettings.DetectMode && pokemonIv < 99)
+                {
+                    return;
+                }
+            }
 
             // Calculate distance away
             var distance = LocationUtils.CalculateDistanceInMeters(session.Client.CurrentLatitude,
@@ -219,6 +250,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                 {
                     var totalExp = 0;
+                    session.Stats.SnipeCount++;
 
                     foreach (var xp in caughtPokemonResponse.CaptureAward.Xp)
                     {
@@ -286,11 +318,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                     PokemonInfo.CalculateMaxCp(encounter is EncounterResponse
                         ? encounter.WildPokemon?.PokemonData
                         : encounter?.PokemonData);
-                evt.Perfection =
-                    Math.Round(
-                        PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
+                evt.Perfection = PokemonInfo.CalculatePokemonPerfection(encounter is EncounterResponse
                             ? encounter.WildPokemon?.PokemonData
-                            : encounter?.PokemonData));
+                            : encounter?.PokemonData);
                 evt.Probability =
                     Math.Round(probability * 100, 2);
                 evt.Distance = distance;
@@ -311,9 +341,10 @@ namespace PoGo.NecroBot.Logic.Tasks
                         await TransferDuplicatePokemonTask.Execute(session, cancellationToken);
                 }
 
-                DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 0);
             } while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
                      caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
+
+            DelayingUtils.Delay(session.LogicSettings.DelayBetweenPokemonCatch, 0);
         }
 
         private static async Task<ItemId> GetBestBall(ISession session, dynamic encounter, float probability)
